@@ -1,6 +1,30 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 1.3.0 → 1.3.1
+Rationale: PATCH. The quality gate "API changes are reflected in `README.md`" now
+reads "API changes are reflected in `contracts/rest-api.md`". The gate contradicted
+Principle III, which since 1.2.3 names the feature's `contracts/rest-api.md` as the
+single source of truth for the HTTP surface and forbids restating that surface in
+`README.md`. The 1.2.3 amendment moved the source of truth in Principle III but missed
+this gate, so the first change to the HTTP surface (the audiences router, T058) would
+have had to break one rule or the other. The obligation — API documentation changes in
+the same change set as the API — is unchanged; only its location is corrected to match
+Principle III.
+
+Modified sections:
+  - Development Workflow and Quality Gates — the API-documentation gate points at
+    `contracts/rest-api.md` instead of `README.md`.
+
+Added sections: none. Removed sections: none. Principles I–IX unchanged.
+
+No previously compliant code becomes non-compliant: the session endpoints
+(T177–T180) already updated the contract rather than the README.
+
+Deferred TODOs: none
+
+--- Carried forward from 1.3.0 ---
+
 Version change: 1.2.3 → 1.3.0
 Rationale: MINOR. The Technology and Data Constraints section gains guidance it did
 not have: an explicit exemption to "no data may exist only in Redis" for ephemeral
@@ -375,7 +399,7 @@ Before a change is considered complete:
 - `ruff` lint and format checks pass, and all new signatures are typed.
 - No new direct Reddit API call exists outside `backend/app/reddit/`.
 - No new cross-module ORM or table access exists.
-- API changes are reflected in `README.md`.
+- API changes are reflected in `contracts/rest-api.md`.
 - New dependencies are in `requirements.txt`.
 - New user-facing views define loading, empty, error, and populated states, and use existing domain
   vocabulary and shared components.
@@ -409,4 +433,4 @@ justification is written into the change description and a follow-up task to rem
 undocumented violations MUST be reverted or fixed rather than grandfathered. `CLAUDE.md` remains the
 source of runtime development guidance and MUST stay consistent with this constitution.
 
-**Version**: 1.3.0 | **Ratified**: 2026-08-14 | **Last Amended**: 2026-08-17
+**Version**: 1.3.1 | **Ratified**: 2026-08-14 | **Last Amended**: 2026-11-01
