@@ -170,7 +170,7 @@ def authenticate(username: str, password: str) -> bool:
 
     Touches no external system.
     """
-    stored = settings.auth_password_hash
+    stored = settings.auth_password_hash.get_secret_value()
     if not stored:
         logger.warning(
             "sign-in refused: no credential is configured. Set AUTH_PASSWORD_HASH in .env "

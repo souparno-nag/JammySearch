@@ -15,6 +15,7 @@ test and a nondeterministic one).
 from datetime import UTC, timedelta
 
 import pytest
+from pydantic import SecretStr
 
 import app.users.auth_service as auth
 from app.users.auth_service import (
@@ -95,7 +96,7 @@ def test_a_long_unicode_password_round_trips():
 @pytest.fixture
 def configured_credential(monkeypatch):
     monkeypatch.setattr(auth.settings, "auth_username", "researcher")
-    monkeypatch.setattr(auth.settings, "auth_password_hash", hash_password(PASSWORD))
+    monkeypatch.setattr(auth.settings, "auth_password_hash", SecretStr(hash_password(PASSWORD)))
 
 
 def test_the_configured_credential_authenticates(configured_credential):
@@ -114,7 +115,7 @@ def test_authentication_fails_closed_when_no_credential_is_configured(monkeypatc
     # The state a fresh checkout is in: .env carries no AUTH_PASSWORD_HASH. The dangerous
     # reading of "no password set" is "no password required". It must mean "nobody gets in".
     monkeypatch.setattr(auth.settings, "auth_username", "researcher")
-    monkeypatch.setattr(auth.settings, "auth_password_hash", "")
+    monkeypatch.setattr(auth.settings, "auth_password_hash", SecretStr(""))
 
     assert authenticate("researcher", PASSWORD) is False
     assert authenticate("researcher", "") is False

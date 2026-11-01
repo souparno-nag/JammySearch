@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from app.common.redis import get_redis
 from app.config import settings
@@ -44,7 +45,7 @@ def configured(monkeypatch):
     with no credential configured — which is the state a fresh clone is in.
     """
     monkeypatch.setattr(settings, "auth_username", "researcher")
-    monkeypatch.setattr(settings, "auth_password_hash", PASSWORD_HASH)
+    monkeypatch.setattr(settings, "auth_password_hash", SecretStr(PASSWORD_HASH))
 
 
 @pytest.fixture
@@ -129,7 +130,7 @@ def test_an_unknown_username_is_refused(client):
 def test_an_unconfigured_credential_refuses_everyone(client, monkeypatch):
     # A deployment that has never set AUTH_PASSWORD_HASH must fail closed. "No credential
     # configured" must never read as "no credential required".
-    monkeypatch.setattr(settings, "auth_password_hash", "")
+    monkeypatch.setattr(settings, "auth_password_hash", SecretStr(""))
 
     assert sign_in(client).status_code == 401
 
@@ -139,7 +140,7 @@ def test_every_refusal_is_indistinguishable(client, monkeypatch):
     # deployment has no credential set, by comparing responses.
     wrong_password = sign_in(client, password="not-the-password")
     unknown_username = sign_in(client, username="somebody-else")
-    monkeypatch.setattr(settings, "auth_password_hash", "")
+    monkeypatch.setattr(settings, "auth_password_hash", SecretStr(""))
     unconfigured = sign_in(client)
 
     responses = [wrong_password, unknown_username, unconfigured]

@@ -47,7 +47,7 @@ class Base(DeclarativeBase):
 # `create_async_engine` does not connect; the first connection is opened lazily on
 # first use, so importing this module never performs I/O.
 engine: AsyncEngine = create_async_engine(
-    settings.database_url,
+    settings.database_url.get_secret_value(),
     pool_size=5,
     max_overflow=10,
     # Verify a pooled connection is still alive before handing it out. Without this,

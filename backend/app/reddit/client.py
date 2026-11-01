@@ -8,7 +8,7 @@ from app.config import settings
 def setup_reddit_client() -> Reddit:
     reddit = praw.Reddit(
         client_id=settings.reddit_client_id,
-        client_secret=settings.reddit_client_secret,
+        client_secret=settings.reddit_client_secret.get_secret_value(),
         user_agent=settings.reddit_user_agent,
     )
     return reddit

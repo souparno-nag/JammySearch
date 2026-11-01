@@ -236,6 +236,12 @@ than `= Depends()` in an argument default (`ruff` B008), and never add an endpoi
   `HttpOnly` cookie, never in the body. Every sign-in failure — wrong password, unknown username,
   unconfigured credential — returns a byte-identical 401. Sign-out is not behind `CurrentUser` (an
   already-expired session must still be able to sign out) and returns 204 either way.
+- Secrets in `app/config.py` (`reddit_client_secret`, `groq_api_key`, `database_url`,
+  `auth_password_hash`) are `SecretStr` (T202), so rendering or logging `settings` prints
+  `**********`. Unwrap with `.get_secret_value()` only at the point of use, and add any new secret
+  setting as `SecretStr` too. In tests, monkeypatch these fields with `SecretStr(...)`, not a bare
+  string. `tests/integration/test_auth_logging.py` fails if the sign-in path ever logs a password,
+  the stored hash, or a session token.
 - Sessions are stored in Redis under a SHA-256 digest of the token, so a leaked dump or backup yields
   no usable session, and expiry is checked by the application as well as by the Redis TTL. Constitution
   v1.3.0 explicitly permits this: sessions and rate-limit windows are named as ephemeral operational

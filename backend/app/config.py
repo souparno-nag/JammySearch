@@ -9,13 +9,21 @@ calling `os.getenv` directly.
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
+    """Every setting the application reads.
+
+    Secrets are typed `SecretStr` (FR-079). Rendering the object — `repr`, `str`, a log line,
+    a dump — shows `**********` in their place, so an accidental `logger.debug(settings)`
+    leaks nothing. Code that needs the value calls `.get_secret_value()` at the point of use,
+    which keeps every place a secret is unwrapped searchable.
+    """
+
     model_config = SettingsConfigDict(
         env_file=REPO_ROOT / ".env",
         env_file_encoding="utf-8",
@@ -24,11 +32,12 @@ class Settings(BaseSettings):
 
     # Reddit — consumed only by backend/app/reddit/ (Constitution I)
     reddit_client_id: str = Field(alias="REDDIT_CLIENT_ID")
-    reddit_client_secret: str = Field(alias="REDDIT_CLIENT_SECRET")
+    reddit_client_secret: SecretStr = Field(alias="REDDIT_CLIENT_SECRET")
     reddit_user_agent: str = Field(alias="REDDIT_USER_AGENT")
 
-    # Database — async driver required by Constitution VI
-    database_url: str = Field(alias="DATABASE_URL")
+    # Database — async driver required by Constitution VI. A secret because the connection
+    # string carries the database password.
+    database_url: SecretStr = Field(alias="DATABASE_URL")
 
     # Redis — cache and Celery broker
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
@@ -36,7 +45,7 @@ class Settings(BaseSettings):
     # LLM — Groq for completions, local sentence-transformers for embeddings (R1).
     # Model identifiers are pinned here explicitly; a floating alias is prohibited
     # by Constitution VII.
-    groq_api_key: str = Field(alias="GROQ_API_KEY")
+    groq_api_key: SecretStr = Field(alias="GROQ_API_KEY")
     groq_model: str = Field(alias="GROQ_MODEL")
     embedding_model_name: str = Field(alias="EMBEDDING_MODEL_NAME")
 
@@ -48,9 +57,11 @@ class Settings(BaseSettings):
     # registration. `auth_password_hash` holds a *hash* produced by
     # `app.users.auth_service.hash_password` — never a plaintext password (FR-079). It
     # defaults to empty, and an empty value means nobody can sign in: "no credential
-    # configured" must fail closed rather than read as "no credential required".
+    # configured" must fail closed rather than read as "no credential required". The default
+    # is spelled `SecretStr("")` because pydantic does not validate defaults: a bare `""`
+    # would stay a plain `str` and break every caller that unwraps it.
     auth_username: str = Field(default="researcher", alias="AUTH_USERNAME")
-    auth_password_hash: str = Field(default="", alias="AUTH_PASSWORD_HASH")
+    auth_password_hash: SecretStr = Field(default=SecretStr(""), alias="AUTH_PASSWORD_HASH")
 
     # How long a session stays valid. Twelve hours: long enough to cover a working day
     # without re-authenticating, short enough that a forgotten session is not indefinite.
