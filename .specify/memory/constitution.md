@@ -1,6 +1,39 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 1.3.1 → 1.4.0
+Rationale: MINOR. Principle V's fixed domain vocabulary replaces *subreddit* with
+*community* — one subreddit tracked by the product — and states where "subreddit"
+remains correct. Raised as finding C1 by /speckit-analyze: every design artifact
+already names the concept "community" (the spec's Key Entities, the `Community` table
+in data-model.md, and contracts/rest-api.md's `/audiences/{id}/communities` route and
+`community_*` error codes), so the fixed term was the outlier, and T058 would have
+shipped the conflict into a route. Changing which word the constitution mandates is
+materially changed guidance rather than a clarification, hence MINOR.
+
+"Subreddit" is not banned. It stays correct where the text is about Reddit's own
+object rather than the product concept: inside `backend/app/reddit/` where it wraps
+PRAW (the existing `obtain_subreddit()`), in Reddit API parameters, and in prose
+explaining what a community is. The prohibition applies to UI copy, API fields,
+database columns, and specification artifacts.
+
+Modified principles:
+  - V. UX Consistency — vocabulary list: *subreddit* → *community*, with the scope
+    in which "subreddit" remains permitted.
+
+Added sections: none. Removed sections: none. Other principles unchanged.
+
+No previously compliant code becomes non-compliant: the only use of "subreddit" in
+application code is in `backend/app/reddit/client.py`, which the amendment names as
+permitted.
+
+Follow-up outside this file: README.md gains the vocabulary list Principle V says it
+fixes, which it did not previously contain.
+
+Deferred TODOs: none
+
+--- Carried forward from 1.3.1 ---
+
 Version change: 1.3.0 → 1.3.1
 Rationale: PATCH. The quality gate "API changes are reflected in `README.md`" now
 reads "API changes are reflected in `contracts/rest-api.md`". The gate contradicted
@@ -203,9 +236,13 @@ than no suite because it teaches the team to ignore red.
 
 The product surface MUST behave the same way everywhere, on both sides of the API.
 
-- Domain vocabulary is fixed by `README.md`: *audience*, *subreddit*, *topic*, *theme*, *pattern*,
+- Domain vocabulary is fixed by `README.md`: *audience*, *community*, *topic*, *theme*, *pattern*,
   *bookmark*, *alert rule*, *alert match*, and *status*. These terms MUST be used consistently in UI
-  copy, API fields, database columns, and documentation. Introducing a synonym for an existing
+  copy, API fields, database columns, and documentation. A *community* is one subreddit tracked by
+  the product. "Subreddit" remains correct only where the text is about Reddit's own object rather
+  than the product concept — inside `backend/app/reddit/` where it wraps PRAW, in Reddit API
+  parameters, and in prose explaining what a community is — and MUST NOT name the product concept in
+  UI copy, API fields, database columns, or specification artifacts. Introducing a synonym for an existing
   concept is prohibited. A genuinely new concept MAY be given a new term, but that term MUST be added
   to this list and to `README.md` by amendment in the same change set that introduces it — the
   prohibition is on inventing a second word for something already named, not on naming something new.
@@ -433,4 +470,4 @@ justification is written into the change description and a follow-up task to rem
 undocumented violations MUST be reverted or fixed rather than grandfathered. `CLAUDE.md` remains the
 source of runtime development guidance and MUST stay consistent with this constitution.
 
-**Version**: 1.3.1 | **Ratified**: 2026-08-14 | **Last Amended**: 2026-11-01
+**Version**: 1.4.0 | **Ratified**: 2026-08-14 | **Last Amended**: 2026-11-01

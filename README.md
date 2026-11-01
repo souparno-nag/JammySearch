@@ -6,6 +6,23 @@ JammySearch is a specialized tool for Reddit Intelligence and Social Listening. 
 
 Engineering standards for this project are defined in `.specify/memory/constitution.md`, which takes precedence over this document where the two disagree.
 
+## Vocabulary
+
+These terms are fixed by Constitution V and mean the same thing in the interface, the API, the
+database, and the documentation. A second word for any of them is not permitted.
+
+- **Audience** — a named group of communities, read, searched, and analysed as one unit.
+- **Community** — one subreddit tracked by the product. "Subreddit" is still the right word when
+  talking about Reddit's own object, but the product's concept is always a community.
+- **Topic** — a subject discussed across an audience.
+- **Theme** — a grouping of an audience's discussion, derived from engagement scoring or from
+  interpreting content.
+- **Pattern** — a recurring observation across the posts of a theme or a search result.
+- **Bookmark** — a post the user has kept, with captured content, a private note, and a status.
+- **Alert rule** — a standing rule, scoped to an audience, evaluated against newly collected material.
+- **Alert match** — a record that a post satisfied an alert rule.
+- **Status** — where the user has got to with a bookmark: new, contacted, or dismissed.
+
 ## Features
 
 ### Basic Features
