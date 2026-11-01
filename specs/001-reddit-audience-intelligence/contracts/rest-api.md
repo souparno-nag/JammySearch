@@ -170,9 +170,13 @@ exempt from SC-004's latency target.
 Trend responses carry per-bucket `share`, `distinct_post_count`, `distinct_author_count`, and
 `collection_coverage`, plus the `period_covered`. When the collected period is too short, the
 response returns `trend_available: false` with the period length rather than a direction (FR-055).
+For a scored theme, `trend_available` is always `false` with reason `window_defined`, because its
+membership is set by a time window rather than accumulated over one (FR-053, R20).
 
 All analysis responses carry `derived_from_comments` (FR-027b) and, when material is insufficient,
-`sufficient: false` with what is missing (FR-025).
+`sufficient: false` with what is missing (FR-025). Topics and themes also carry `non_english_share`, the
+share of their interpreted posts in a language other than English, so the client can flag reduced
+reliability (spec edge case on non-English posts; R23).
 
 Every analysis response also carries an `analysis_state` block — `state` (`complete`, `partial`, or
 `none`), `items_done`, and `items_total` (FR-074). A `partial` state MUST be rendered as visibly

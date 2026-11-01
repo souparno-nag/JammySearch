@@ -174,8 +174,8 @@ The backend is organized around 6 modules, each intended to own its own `router.
    other modules must go through this layer rather than calling PRAW directly. Owns caching, rate
    limiting, and scheduled data refreshes. `backend/app/reddit/client.py` currently has
    `setup_reddit_client()` and `obtain_subreddit()`.
-2. **`audiences/`** — Audience Management. CRUD for user-defined groups of subreddits ("audiences"),
-   curated/team-provided audiences, and related-subreddit suggestions.
+2. **`audiences/`** — Audience Management. CRUD for user-defined groups of communities ("audiences"),
+   the shipped starter audiences, and related-community suggestions.
 3. **`feed/`** — Feed & Search Engine. Aggregates posts across an audience's subreddits, handles advanced
    keyword/boolean search, filtering, dedup, and cross-post detection. Consumes the Reddit Data Layer, not
    Reddit directly.

@@ -65,6 +65,7 @@ audience collection.
 | `crosspost_parent_id` | text | Nullable; deterministic cross-post collapse (R4) |
 | `content_hash` | text | Normalized-text hash for verbatim repost detection (R4) |
 | `availability` | enum | `available`, `deleted`, `removed` |
+| `edited_at_source` | timestamp | Nullable; set by the re-check when the source reports an edit, so the captured text is shown as possibly out of date |
 | `flagged_adult` | boolean | FR-051 |
 
 **Validation**: `source_id` unique. FR-011 collapses on `crosspost_parent_id` first, then
@@ -157,13 +158,14 @@ defeat the purge — purged material must become unretrievable, not merely unrea
 | `label` | text | |
 | `description` | text | Themes only — FR-023 |
 | `kind` | enum | Themes only: `scored` or `interpreted` — FR-022 |
-| `parent_theme_id` | uuid | Nullable; theme sub-categories |
-| `prompt_version` / `model_id` | text | Constitution VII provenance |
+| `scored_definition` | enum | Scored themes only: `top_week`, `discussed_week`, `top_month`, `discussed_month` (R20) |
+| `parent_theme_id` | uuid | Nullable; interpreted-theme sub-categories. A scored theme's sub-categories are the interpreted themes its posts belong to, derived at read time (R20) |
+| `prompt_version` / `model_id` | text | Constitution VII provenance; null for scored themes, which involve no model |
 | `derived_from_comments` | boolean | FR-027b |
 
 ### ThemePost / TopicPost
 
-Join tables linking an interpretation to the posts behind it. These are what make citations and
+Join tables linking an interpretation to the posts behind it, each carrying `post_language` (ISO 639-1, from the theme-tagging output; R23). These are what make citations and
 distinct-author counts (FR-054) computable.
 
 ### DiscussionBucket
@@ -251,6 +253,7 @@ false` and no citations is invalid and must fail validation rather than being di
 | `intent_embedding` | vector | Nullable; pgvector column, computed once when `intent_text` is set or changed |
 | `similarity_threshold` | float | Nullable; per-rule override of the configured default — FR-084 |
 | `state` | enum | `active` or `paused` — FR-056 |
+| `last_evaluated_at` | timestamp | Nullable; distinguishes an active rule that matched nothing from one that is not running |
 
 **State transitions**: `active ⇄ paused`; deletion is soft, because FR-059 requires matches to
 survive rule deletion.

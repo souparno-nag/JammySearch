@@ -149,6 +149,23 @@ make the trend actively misleading — the exact failure the specification's edg
 interrupted collection calls out. Share-of-discussion normalizes that away. Distinct-author counts
 (FR-054) are stored alongside, because a topic carried by one prolific poster is not a trend.
 
+**Thresholds.** These are configurable in `backend/app/config.py`. The defaults below are starting
+points, to be retuned once real collection volume is known, as R5's are.
+
+- **Sufficiency (FR-025)**: an audience can be analysed once it holds at least **100 posts with text**
+  (not purged) collected in the trailing **30 days**. Below that, analysis responses return
+  `sufficient: false` with the count held and the count needed. There is no minimum number of
+  communities, so a single-community audience can be analysed if it meets the post count.
+- **Minimum period for a direction (FR-055)**: buckets are weekly. A direction is shown only once at
+  least **6 buckets** have `collection_coverage` of **0.8** or more. Buckets below that are drawn as gaps
+  and do not count toward the six. Short of that, the response returns `trend_available: false` with
+  the period covered.
+
+One hundred posts is roughly where interpretation produces more than a couple of themes. The US3
+independent test assumes "a few hundred". Six weekly points is the fewest that separates a movement
+from week-to-week noise. With fewer, the slope is drawn through the noise, which is the failure
+FR-055 exists to prevent.
+
 **Alternatives considered**: Raw post counts per bucket — rejected, indistinguishable from collection
 volume changes. On-the-fly computation over raw posts — rejected, it scales badly and violates
 Constitution VI's prohibition on unbounded queries in request paths.
@@ -184,6 +201,13 @@ history. Persist matches as their own records so they survive rule edits and del
 Matching only the new batch keeps the work proportional to arrival volume. Persisting matches
 independently of rules is what makes FR-059 satisfiable — a match is a historical fact, not a view
 over a rule.
+
+**Broad-match threshold (FR-060)**: a rule is matching broadly when, over the trailing **7 days**, its
+matches exceed **20%** of the posts evaluated for its audience. The check applies only once at least
+**50 posts** have been evaluated in that window, so a quiet audience's first few matches cannot trip
+it. Both values are configurable. The flag is re-evaluated after each batch and clears itself when
+the share falls back below the threshold. A rule surfacing one post in five is no longer filtering,
+which is the condition FR-060 exists to report.
 
 **Alternatives considered**: A periodic job that re-runs each rule as a search over all history —
 rejected, cost grows with corpus size rather than arrival rate, and it produces duplicate matches.
@@ -483,6 +507,130 @@ FR-032 reason; revisit only if follow-up questions become a specified capability
 
 ---
 
+## R20. Scored themes
+
+**Decision**: Scored themes (FR-022) are computed in SQL from engagement figures, with no model call.
+There are four fixed definitions:
+
+| `scored_definition` | Label | Measure | Window |
+|---|---|---|---|
+| `top_week` | Top this week | `score` | 7 days |
+| `discussed_week` | Most discussed this week | `comment_count` | 7 days |
+| `top_month` | Top this month | `score` | 30 days |
+| `discussed_month` | Most discussed this month | `comment_count` | 30 days |
+
+Each holds the **25 posts** that rank highest on its measure *relative to their own community*: a
+post's percentile among its community's posts in the same window, measured on `posted_at`. Ties are
+broken by the raw measure, then by post id, so the same material always yields the same membership.
+
+- **Description** (FR-023) is a fixed template naming the measure, the window, and the size.
+- **Sub-categories** (FR-023) are the interpreted themes its posts belong to, derived at read time
+  from `ThemePost`. When interpretation has not run, the list is empty and the response says why, in
+  the same way FR-020 handles unavailable search analysis.
+- **Contributing topics and communities** come from `TopicPost` and from each post's community.
+- **Patterns and sentiment** (FR-024) run on its posts through the ordinary pattern and sentiment
+  services, which is the only point where scored themes incur model cost.
+- **No trend** (FR-053 as amended). The theme is recomputed for each window, so its share of
+  discussion is fixed by construction.
+- `derived_from_comments` is `false`. `comment_count` is a figure the source reports, not collected
+  comment text.
+
+Scored themes are recomputed after each ingestion cycle, before interpretation, and independently of
+the spend ceiling and of model availability. The analysis view therefore has something true to show
+before any model has run.
+
+**Rationale**: FR-022 requires the two kinds to be distinguishable, and engagement ranking is a
+question SQL answers exactly and for free. Ranking relative to each post's own community follows R5's
+reasoning. A raw score favours the largest community in the audience, so "top" would mean "from the
+biggest subreddit".
+
+**Alternatives considered**: Ranking on raw score across the audience — rejected, it lets one large
+community fill every slot. Asking a model to name the popular themes — rejected; it is
+non-deterministic and pays for a question with an exact answer. Per-community top lists — rejected;
+that is the feed's sort order (FR-009), not a theme.
+
+---
+
+## R21. Community tags and growth
+
+**Decision**: Community tags (FR-036) and growth ranking (FR-035) use fixed, configurable rules:
+
+- **Size band**, by `subscriber_count`: *tiny* under 1,000; *small* 1,000–9,999; *medium*
+  10,000–99,999; *large* 100,000–999,999; *huge* 1,000,000 and over.
+- **New**: `created_at_source` within the last **365 days**.
+- **Activity level**, from the mean `posts_in_period` over the most recent **7 snapshots**: *quiet*
+  under 1 post a day, *active* 1–20, *busy* over 20. With fewer than 7 snapshots the tag is computed
+  from those that exist and marked provisional. With none it is *unknown*, never guessed.
+- **Growth**: percentage change in `subscriber_count` between the earliest and latest snapshots
+  inside the selected time window (default 30 days). A community is ranked only when its snapshots
+  span at least **80%** of the window. Communities with less history are listed after the ranked ones
+  with the days of history they have (FR-039), never ranked on a partial window. The absolute change
+  is returned alongside, so a 50% jump from 40 to 60 subscribers reads as what it is.
+
+**Rationale**: Size bands are orders of magnitude because that is how differently communities behave.
+Finer cut-offs would split communities that behave alike. Activity comes from snapshots because the
+source exposes no posting-rate statistic, and an *unknown* tag is honest where an inferred one is
+not. Growth is a percentage so that large communities do not top the ranking by size alone. The
+coverage rule is what keeps FR-039's "rather than a misleading trend" true for rankings as well as
+charts.
+
+**Alternatives considered**: Percentile bands relative to all tracked communities — rejected; a tag
+would change meaning as the tracked set changes. Activity from a single listing fetch — rejected; it
+spends quota for a one-off figure that the daily snapshot already accumulates for free.
+
+---
+
+## R22. Related-community suggestions
+
+**Decision**: Suggestions (FR-007) are ranked by term overlap, with no model and no embeddings, so they
+work in US1 before any AI story exists.
+
+- **Candidates** come from two places. One is the communities already in the `Community` table, both
+  tracked ones and any seen in discovery results. The other is one source community search per
+  member, keyed on that member's name, for at most the **5 largest members** by subscriber count. The
+  searches go through `app/reddit/` with R3's quota charge and a **24-hour** cache.
+- **Scoring**: each candidate's title and description are lower-cased, tokenized, and stripped of a
+  fixed, committed stop-word list. They are then scored by **TF-IDF cosine similarity** against the
+  combined title and description text of the audience's current members.
+- **Excluded**: communities already in the audience, and any whose `availability` is not `available`.
+  Adult communities are included but carry their flag (FR-051).
+- The top **10** are returned, with ties broken by subscriber count and then name, so the same
+  audience always gets the same suggestions.
+
+**Rationale**: FR-007 sits in the MVP story, which must not depend on the AI stories. Term overlap is
+deterministic, free, and testable test-first. Capping the searches at five keeps the quota cost of
+creating an audience bounded, whatever its size.
+
+**Alternatives considered**: Embedding similarity between descriptions — better semantics, but it
+depends on US4's embedding work. Adopt it once US4 lands, as a retrieval change with an evaluation run.
+A "related communities" list from the source — the source offers no general endpoint for one. Author
+overlap between communities — rejected; it needs author posting histories, which are quota-expensive
+to collect and sit badly with Constitution VIII's caution about identifying people.
+
+---
+
+## R23. Non-English material
+
+**Decision**: Language is recorded as a by-product of theme tagging, not by a separate detector. The
+theme-tagging structured output (Constitution VII) carries an ISO 639-1 `language` for each post,
+stored as `post_language` on `ThemePost` and `TopicPost`. Analysis responses carry
+`non_english_share` for each topic and theme, meaning the share of its interpreted posts tagged other
+than `en`. The interface flags the interpretation as less reliable when that share exceeds **20%**
+(configurable). Posts in every language are still collected and displayed, per the specification's
+Assumptions. A post that has not been interpreted has no recorded language and is left out of the
+share rather than guessed.
+
+**Rationale**: The specification's edge case requires analysis to say where its interpretation is
+less reliable. The model already reads every interpreted post at temperature 0, so asking it for the
+language adds a field to an existing call, not a new call or a new cost.
+
+**Alternatives considered**: A language-detection library — a dependency outside the committed stack,
+which would need the constitution's amendment procedure for a figure the existing call can supply. A
+character-script heuristic — rejected; it cannot tell Latin-script languages apart, and those make up
+most of Reddit's non-English traffic.
+
+---
+
 ## Resolved Technical Context
 
 | Item | Resolution |
@@ -506,6 +654,10 @@ FR-032 reason; revisit only if follow-up questions become a specified capability
 | Alert matching | Keyword and intent modes, independently operable; intent reuses pgvector (R18) |
 | Context budget | Per-call input budget enforced by the adapter; Ask answers each question without prior turns (R19) |
 | Untrusted text | Usernames masked before provider calls (R1); Reddit and model text rendered as escaped text, `{@html}` lint-banned (R10) |
-| Scale | One user; up to 50 communities per audience; 8 user stories; 83 functional requirements |
+| Scored themes | Engagement-ranked, community-relative, computed in SQL with no model call (R20) |
+| Thresholds | Sufficiency and trend minimum (R6), broad matching (R8), community tags and growth (R21) |
+| Suggestions | TF-IDF term overlap over known and searched communities, no model (R22) |
+| Language | Recorded per post by the theme-tagging call; reliability flagged above 20% non-English (R23) |
+| Scale | One user; up to 50 communities per audience; 8 user stories; 87 functional requirements |
 
 No `NEEDS CLARIFICATION` items remain.

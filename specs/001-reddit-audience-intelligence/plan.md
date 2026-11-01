@@ -39,8 +39,9 @@ is independently shippable and is the foundation everything else consumes.
 
 **Language/Version**: Python 3.11 (backend), TypeScript (frontend)
 
-**Primary Dependencies**: FastAPI, PRAW, Celery, SQLAlchemy, Alembic, Pydantic, pgvector, an LLM
-provider SDK behind an internal adapter, SvelteKit (adapter-static)
+**Primary Dependencies**: FastAPI, PRAW, Celery, SQLAlchemy, Alembic, Pydantic, pgvector, LangChain
+behind an internal adapter (Groq for completions, a local `sentence-transformers` model for embeddings —
+R1), SvelteKit (adapter-static)
 
 **Storage**: PostgreSQL as system of record, including embeddings via the `pgvector` extension. Redis
 as cache and Celery broker, treated as fully reconstructible from PostgreSQL.
@@ -100,7 +101,7 @@ is consequently empty.
 specs/001-reddit-audience-intelligence/
 ├── plan.md              # This file
 ├── spec.md              # Feature specification (with Clarifications section)
-├── research.md          # Phase 0 output — R1–R19
+├── research.md          # Phase 0 output — R1–R23
 ├── data-model.md        # Phase 1 output
 ├── quickstart.md        # Phase 1 output
 ├── contracts/           # Phase 1 output

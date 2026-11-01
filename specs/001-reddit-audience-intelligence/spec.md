@@ -155,7 +155,7 @@ sub-categories, contributing communities, and detected patterns are shown.
 7. **Given** an audience whose posts include widely discussed threads, **When** analysis runs, **Then**
    the discussion on those threads informs the topics, themes, and patterns produced, and the
    researcher can tell which results were supported by discussion rather than post text alone.
-8. **Given** a topic or theme, **When** the researcher views it, **Then** they see how its share of the
+8. **Given** a topic or an interpreted theme, **When** the researcher views it, **Then** they see how its share of the
    audience's discussion has changed over the period for which material has been collected, and how
    many distinct posts and distinct authors sit behind it.
 9. **Given** a topic or theme with too little collected history to establish a direction, **When** its
@@ -239,8 +239,7 @@ post attached — and that a non-matching post is not.
    keyword matching continues to work and the researcher is told that meaning-based matching is not
    currently active, rather than silently receiving fewer matches.
 
-**Note**: Alerts in this release are surfaced inside the application only. Outbound delivery — email,
-Slack, Discord — remains out of scope per the README.
+**Note**: Alerts are in-app only in this release; see FR-063.
 
 ---
 
@@ -485,8 +484,10 @@ everything that follows them.
   the topics and communities contributing to it, and the posts behind it.
 - **FR-024**: The system MUST be able to present recurring patterns detected across the posts of a
   theme, and the sentiment of those posts.
-- **FR-053**: The system MUST present, for any topic or theme, how its share of the audience's
-  discussion has changed over the period for which material has been collected.
+- **FR-053**: The system MUST present, for any topic or interpreted theme, how its share of the
+  audience's discussion has changed over the period for which material has been collected. A scored
+  theme's membership is itself defined by a time window, so a share-of-discussion trend is not
+  meaningful for it, and the system MUST say so rather than draw one.
 - **FR-054**: The system MUST present the number of distinct posts and the number of distinct authors
   behind a topic or theme, so a user can distinguish a concern held widely from one person raising the
   same point repeatedly.
@@ -718,7 +719,7 @@ everything that follows them.
   and search timings above.
 - **SC-014**: A post matching an active alert rule is surfaced to the researcher within 15 minutes of
   that post being collected.
-- **SC-015**: For any theme, its direction of travel over the collected period and the number of
+- **SC-015**: For any topic or interpreted theme, its direction of travel over the collected period and the number of
   distinct authors behind it are reachable within two interactions from the analysis view.
 - **SC-016**: A researcher can tell, for any bookmark, whether they have already acted on it,
   without opening it.
@@ -751,7 +752,7 @@ everything that follows them.
   reads content that is publicly visible.
 - **Maximum audience size of 50 communities** is assumed for FR-005 in the absence of a stated limit.
   This bounds feed and analysis cost while comfortably exceeding realistic research use.
-- **Ready-made audiences are authored by the product's maintainer** and shipped as fixed content.
+- **Starter audiences are authored by the product's maintainer** and shipped as fixed content.
   Keeping them useful is an ongoing editorial task, not an automated one, and a shipped audience can
   go stale as communities rise and fall.
 - **The engagement threshold for comment collection starts conservative** and is tuned by observation
