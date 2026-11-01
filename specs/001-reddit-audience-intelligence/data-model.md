@@ -210,7 +210,9 @@ is the second line of defence — even a retried chunk incurs no new charge (FR-
 
 ### AskSession and AskTurn
 
-Conversation state persisted per Constitution VII — never in process memory.
+Conversation state persisted per Constitution VII — never in process memory. Each turn is answered
+independently: no prior turn enters the prompt (R19), which is also what lets FR-032 hold — the same
+question against unchanged material assembles the same context every time.
 
 | Field | Type | Notes |
 |---|---|---|

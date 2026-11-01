@@ -24,6 +24,8 @@ independently.
 - Task IDs are stable and unique but not contiguous in document order. Tasks added after the first
   draft take the next free number rather than renumbering everything below them; execute in document
   order, not numeric order.
+- T181–T200 were added on 2026-11-01 to resolve `/speckit-analyze` findings C3–C6: retrieval
+  measurement, missing test-first tasks, the context budget, and untrusted-text handling.
 
 ## Path Conventions
 
@@ -157,6 +159,9 @@ read a post in full, and confirm cross-posted content appears once — without v
 - [ ] T050 [P] [US1] Unit tests for the 50-community cap and duplicate rejection in backend/tests/unit/test_audience_service.py
 - [ ] T051 [P] [US1] Unit tests for cross-post and verbatim-repost collapsing in backend/tests/unit/test_dedup.py
 - [ ] T052 [P] [US1] Integration test covering create audience through populated feed in backend/tests/integration/test_audience_feed_journey.py
+- [ ] T182 [P] [US1] Unit tests for starter-audience copy-on-save — the copy and the original stay independent in both directions (FR-006) — in backend/tests/unit/test_starter_service.py
+- [ ] T183 [P] [US1] Unit tests for related-community suggestions — ranked, never suggesting a community already in the audience — in backend/tests/unit/test_suggestions.py (the suggestion method must first be recorded in research.md; analysis finding M10)
+- [ ] T198 [P] [US1] Write failing tests for untrusted-text rendering — markup shown as text, URLs as click-only links, images never embedded (R10) — in frontend/src/components/untrusted-text.test.ts
 
 ### Implementation for User Story 1
 
@@ -174,7 +179,8 @@ read a post in full, and confirm cross-posted content appears once — without v
 - [ ] T064 [P] [US1] Author the shipped starter audiences seed data in backend/scripts/seed_starter_audiences.py
 - [ ] T065 [P] [US1] Build the audience list and creation screens in frontend/src/routes/audiences/
 - [ ] T066 [US1] Build the feed view using the four-state wrapper in frontend/src/routes/audiences/[id]/feed/+page.svelte
-- [ ] T067 [US1] Build the in-app post preview in frontend/src/components/PostPreview.svelte
+- [ ] T199 [US1] Implement the untrusted-text renderer, and pin svelte/no-at-html-tags to error explicitly, in frontend/src/components/untrusted-text.ts and frontend/eslint.config.js
+- [ ] T067 [US1] Build the in-app post preview, rendering body text only through the untrusted-text renderer (R10), in frontend/src/components/PostPreview.svelte
 
 ### Deletion obligations — created by this story (FR-067–FR-069)
 
@@ -241,6 +247,12 @@ inventing results.
 - [ ] T083 [P] [US3] Unit tests asserting temperature 0, pinned model, and cache key composition in backend/tests/unit/test_ai_adapter.py
 - [ ] T084 [P] [US3] Unit tests for share-of-discussion and collection-coverage computation in backend/tests/unit/test_trends.py
 - [ ] T085 [P] [US3] Unit tests for chunked commit, cursor advance, and resume without re-charge in backend/tests/unit/test_analysis_runner.py
+- [ ] T196 [P] [US3] Write failing tests asserting the adapter refuses an over-budget context before any provider call, using R19's estimate, in backend/tests/unit/test_context_budget.py
+- [ ] T200 [P] [US3] Write failing tests asserting prompt assembly omits author fields and masks u/ mentions before any provider call (R1) in backend/tests/unit/test_prompt_privacy.py
+- [ ] T184 [P] [US3] Unit tests for theme tagging and topic extraction against a mocked adapter — interpreted themes, sub-categories, post linkage, and schema-invalid output surfaced rather than salvaged — in backend/tests/unit/test_theme_service.py
+- [ ] T185 [P] [US3] Unit tests for sentiment scoring against a mocked adapter in backend/tests/unit/test_sentiment_service.py
+- [ ] T186 [P] [US3] Unit tests for pattern detection against a mocked adapter in backend/tests/unit/test_pattern_service.py
+- [ ] T187 [P] [US3] Unit tests asserting the non-LLM topic baseline is deterministic for a fixed corpus in backend/tests/unit/test_baseline.py
 
 ### Comment collection for User Story 3 (FR-027, FR-027a, FR-027b)
 
@@ -255,7 +267,7 @@ inventing results.
 
 ### Implementation for User Story 3
 
-- [ ] T086 [US3] Implement the single LLM adapter with pinned model, temperature 0, schema validation, and telemetry in backend/app/ai/adapter.py
+- [ ] T086 [US3] Implement the single LLM adapter with pinned model, temperature 0, schema validation, telemetry, an enforced input token budget (R19), and username masking (R1) in backend/app/ai/adapter.py
 - [ ] T087 [P] [US3] Author versioned prompt templates in backend/app/ai/prompts/
 - [ ] T088 [P] [US3] Define Topic, Theme, ThemePost, TopicPost, Pattern, DiscussionBucket, and AnalysisRun models in backend/app/ai/models.py
 - [ ] T089 [US3] Create the Alembic migration for interpretation tables in backend/alembic/versions/
@@ -285,10 +297,14 @@ verify refusal rather than a general-knowledge answer.
 ### Tests for User Story 4
 
 - [ ] T100 [P] [US4] Label question-to-post relevance including unanswerable questions in evals/datasets/retrieval.jsonl
+- [ ] T181 [US4] Extend the scoring harness with retrieval recall at k and claim traceability over evals/datasets/retrieval.jsonl, per R12, in evals/run_eval.py
 - [ ] T101 [P] [US4] Contract tests for the ask endpoint covering answered, refused, and failed outcomes in backend/tests/integration/test_ask_api.py
 - [ ] T102 [P] [US4] Unit tests for the refusal gate at the minimum-count and floor boundaries in backend/tests/unit/test_retrieval_gate.py
 - [ ] T103 [P] [US4] Unit test asserting retrieved text is delimited as untrusted and never followed as instructions in backend/tests/unit/test_prompt_injection.py
 - [ ] T104 [P] [US4] Unit test asserting a mid-stream failure is not stored or shown as an answer in backend/tests/unit/test_ask_failure.py
+- [ ] T188 [P] [US4] Unit tests for paragraph-aware chunking — paragraph boundaries, the hard size ceiling with sentence splitting (R19), and the model identifier recorded per chunk — in backend/tests/unit/test_chunking.py
+- [ ] T189 [P] [US4] Unit tests asserting chunk purge removes every chunk of purged material and nothing else in backend/tests/unit/test_chunk_purge.py
+- [ ] T197 [P] [US4] Write failing tests for Ask context assembly — no prior turns, passages admitted whole in rank order within the budget, and startup validation that the gate's minimum count fits (R19) — in backend/tests/unit/test_ask_context.py
 
 ### Implementation for User Story 4
 
@@ -299,9 +315,9 @@ verify refusal rather than a general-knowledge answer.
 - [ ] T109 [US4] Implement chunk purging when source material is purged in backend/app/ai/purge.py
 - [ ] T110 [US4] Implement the deterministic refusal gate with configurable count and floor in backend/app/ai/retrieval.py
 - [ ] T111 [P] [US4] Define AskSession, AskTurn with three-valued outcome, and AskCitation in backend/app/ai/ask_models.py
-- [ ] T112 [US4] Implement the streamed, cited Ask pipeline in backend/app/ai/ask_service.py
+- [ ] T112 [US4] Implement the streamed, cited Ask pipeline — structured claims each naming their passages (R12), context assembled under R19's budget with no prior turns — in backend/app/ai/ask_service.py
 - [ ] T113 [US4] Implement ask routes with streaming and outcome reporting in backend/app/ai/router.py
-- [ ] T114 [US4] Build the Ask screen using the four-state wrapper, rendering citations, refusals, and failures distinctly, in frontend/src/routes/audiences/[id]/ask/+page.svelte
+- [ ] T114 [US4] Build the Ask screen using the four-state wrapper, rendering citations, refusals, and failures distinctly, with answer text only through the untrusted-text renderer (R10), in frontend/src/routes/audiences/[id]/ask/+page.svelte
 
 ---
 
@@ -318,6 +334,7 @@ with the rule and matched terms named — and that editing the rule leaves the m
 - [ ] T116 [P] [US5] Unit test asserting matches survive rule edit and deletion in backend/tests/unit/test_alert_persistence.py
 - [ ] T117 [P] [US5] Unit tests for broad-match detection and degraded-community handling in backend/tests/unit/test_alert_evaluation.py
 - [ ] T176 [P] [US5] Timing test asserting a match surfaces within 15 minutes of collection per SC-014 in backend/tests/integration/test_alert_latency.py
+- [ ] T190 [P] [US5] Unit tests for match listing — one post matched by several rules appears once, naming every rule it matched — in backend/tests/unit/test_match_service.py
 
 ### Implementation for User Story 5
 
@@ -358,6 +375,8 @@ history, and add a result to an audience.
 - [ ] T126 [P] [US6] Contract tests for discovery and history endpoints in backend/tests/integration/test_discovery_api.py
 - [ ] T127 [P] [US6] Unit tests for size, newness, and activity tag derivation in backend/tests/unit/test_community_tags.py
 - [ ] T128 [P] [US6] Unit test asserting insufficient history returns a period rather than a trend in backend/tests/unit/test_history_guard.py
+- [ ] T191 [P] [US6] Unit tests for ranking by size, activity, and growth with membership-band and time-window filters in backend/tests/unit/test_ranking_service.py
+- [ ] T192 [P] [US6] Unit tests for history series assembly from snapshots, including gaps left by missed snapshot days, in backend/tests/unit/test_history_service.py
 
 ### Implementation for User Story 6
 
@@ -370,7 +389,7 @@ history, and add a result to an audience.
 
 ---
 
-## Phase 9: User Story 7 — Saved posts and lead tracking (Priority: P7)
+## Phase 9: User Story 7 — Bookmarks and lead tracking (Priority: P7)
 
 **Goal**: Bookmark posts with private notes and a status, filterable by state.
 
@@ -381,6 +400,7 @@ confirm a bookmark of deleted material still shows captured text.
 
 - [ ] T135 [P] [US7] Contract tests for bookmark CRUD and status filtering in backend/tests/integration/test_bookmarks_api.py
 - [ ] T136 [P] [US7] Unit test asserting captured content survives source deletion and is destroyed with the bookmark in backend/tests/unit/test_bookmark_capture.py
+- [ ] T193 [P] [US7] Unit tests for bookmark notes and status transitions, including the status filter, in backend/tests/unit/test_bookmark_service.py
 
 ### Implementation for User Story 7
 
@@ -388,7 +408,7 @@ confirm a bookmark of deleted material still shows captured text.
 - [ ] T138 [US7] Create the Alembic migration for bookmarks in backend/alembic/versions/
 - [ ] T139 [US7] Implement bookmark capture, notes, and status transitions in backend/app/users/bookmark_service.py
 - [ ] T140 [US7] Implement bookmark routes with status filtering in backend/app/users/router.py
-- [ ] T141 [US7] Build the saved-posts screen using the four-state wrapper, with status controls and a destructive-delete warning, in frontend/src/routes/bookmarks/
+- [ ] T141 [US7] Build the bookmarks screen using the four-state wrapper, with status controls and a destructive-delete warning, in frontend/src/routes/bookmarks/
 
 ---
 
@@ -403,6 +423,8 @@ and last-refreshed time — and that exhausting a ceiling fails clearly.
 
 - [ ] T142 [P] [US8] Contract tests for every /ops surface in backend/tests/integration/test_ops_api.py
 - [ ] T143 [P] [US8] Unit test asserting an exhausted ceiling refuses rather than continuing to spend in backend/tests/unit/test_spend_ceiling_enforcement.py
+- [ ] T194 [P] [US8] Unit tests for usage, quota, and freshness aggregation, per audience and in aggregate, in backend/tests/unit/test_summary_service.py
+- [ ] T195 [P] [US8] Unit tests for published evaluation results — latest run per capability, model and baseline side by side — in backend/tests/unit/test_ops_evaluation_service.py
 
 ### Implementation for User Story 8
 
@@ -466,13 +488,13 @@ Setup (T001–T010)
 **Foundational**: T012, T013, T015 (distinct common modules); T024, T025, T026 (distinct reddit
 modules); T029 and T033, T034 (distinct model files); T045, T046 (distinct frontend files).
 
-**US1**: T048–T052 all touch different test files and can be written together. T053 and T059 are
+**US1**: T048–T052, T182, T183, and T198 all touch different test files and can be written together. T053 and T059 are
 independent. T064, T065 are independent of backend work.
 
-**US3**: T079, T080 are pure labeling and parallelize with each other and with T082–T085. T091, T092,
+**US3**: T079, T080 are pure labeling and parallelize with each other and with T082–T085 and T184–T187, T196, T200. T091, T092,
 T093 touch separate service files.
 
-**US4**: T100–T104 parallelize fully. T105 and T111 are separate model files.
+**US4**: T100–T104, T188, T189, and T197 parallelize fully; T181 follows T100, whose labels it scores. T105 and T111 are separate model files.
 
 **Polish**: T149, T150, T151, T153, T154, T155 are mutually independent.
 

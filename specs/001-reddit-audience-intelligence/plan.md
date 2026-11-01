@@ -73,7 +73,8 @@ remain.
 
 *GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design.*
 
-Evaluated against constitution **v1.2.3**.
+Evaluated against constitution **v1.4.0**, re-checked on 2026-11-01 after the `/speckit-analyze`
+remediation. v1.3.0's ephemeral-state exemption and v1.3.1's API-docs gate both pass without change.
 
 | # | Principle | Gate | Status |
 |---|-----------|------|--------|
@@ -81,11 +82,11 @@ Evaluated against constitution **v1.2.3**.
 | II | Modular Boundaries and Code Quality | Modules own their routers, services, models, schemas; no cross-module table access; typed signatures; ruff clean; no business logic in routers | **PASS** |
 | III | Contract-First Interfaces | Every endpoint has Pydantic request and response models; `contracts/rest-api.md` is the single source of truth for the HTTP surface and is updated in the same change set as any change to it; the surface is not restated elsewhere | **PASS** — constitution v1.2.3 moved the canonical location here from `README.md`, which now links rather than duplicates |
 | IV | Testing Standards | Test-first for all service logic; unit and integration split; deterministic; 80% service-layer coverage floor; externals mocked | **PASS** |
-| V | UX Consistency | Four view states everywhere; shared components and tokens before feature screens; UTC ISO 8601; shared pagination and error envelopes | **PASS** — v1.2.2 added *alert rule*, *alert match*, and *status* to the fixed vocabulary and made the list extensible by amendment |
+| V | UX Consistency | Four view states everywhere; shared components and tokens before feature screens; UTC ISO 8601; shared pagination and error envelopes | **PASS** — v1.2.2 added *alert rule*, *alert match*, and *status* to the fixed vocabulary; v1.4.0 fixed *community* (one subreddit) in place of *subreddit*, matching every artifact; *bookmark* is used throughout, never "saved post" |
 | VI | Performance and Efficiency | Caching with defined TTLs on paid or rate-limited calls; inference persisted; bulk work in Celery; mandatory pagination; no N+1; no blocking I/O in request paths | **PASS** — v1.2.2 scoped the budgets to server-side p95, resolving the apparent conflict with SC-003/SC-004 |
-| VII | Deterministic and Bounded AI | Temperature 0; pinned model identifier; versioned prompt files; Pydantic-validated structured output; cache keyed on (content hash, prompt version, model id); Ask state persisted | **PASS** — FR-073's no-recharge-on-resume is satisfied by the same cache key |
-| VIII | AI Guardrails and Safety | Retrieved text delimited and labelled untrusted (FR-033); model output never constructs an operation; output escaped; spend ceilings enforced server-side (FR-046, FR-080); explicit refusal below threshold (FR-030, FR-076) | **PASS** |
-| IX | AI Evaluation and Observability | Labelled sets committed before AI features ship; regression gate on prompt, model, chunking, or retrieval changes — now explicitly including the refusal threshold (FR-077); non-LLM baseline; telemetry on every call | **PASS** |
+| VII | Deterministic and Bounded AI | Temperature 0; pinned model identifier; versioned prompt files; Pydantic-validated structured output; cache keyed on (content hash, prompt version, model id); Ask state persisted; per-call token budget enforced by the adapter; Ask turns answered without prior context (R19) | **PASS** — FR-073's no-recharge-on-resume is satisfied by the same cache key |
+| VIII | AI Guardrails and Safety | Retrieved text delimited and labelled untrusted (FR-033); model output never constructs an operation; output escaped; spend ceilings enforced server-side (FR-046, FR-080); explicit refusal below threshold (FR-030, FR-076); usernames masked before provider calls (R1); untrusted text rendered as escaped text with `{@html}` lint-banned (R10) | **PASS** |
+| IX | AI Evaluation and Observability | Labelled sets committed before AI features ship; regression gate on prompt, model, chunking, or retrieval changes — now explicitly including the refusal threshold (FR-077); retrieval scored directly by recall at k and claim traceability (R12); non-LLM baseline; telemetry on every call | **PASS** |
 
 **Post-design re-check**: re-evaluated after Phase 1. No violations. The two conditions carried by
 the previous revision of this plan are both resolved by constitution v1.2.2, and Complexity Tracking
@@ -99,7 +100,7 @@ is consequently empty.
 specs/001-reddit-audience-intelligence/
 ├── plan.md              # This file
 ├── spec.md              # Feature specification (with Clarifications section)
-├── research.md          # Phase 0 output — R1–R17
+├── research.md          # Phase 0 output — R1–R19
 ├── data-model.md        # Phase 1 output
 ├── quickstart.md        # Phase 1 output
 ├── contracts/           # Phase 1 output

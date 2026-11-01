@@ -149,7 +149,7 @@ delivery — email, Slack, Discord — is deferred (see **Future Scope**).
 3. **Act in place**
 A matched post can be read in full, saved, and given a status without leaving the alert view.
 
-### Saved posts and lead tracking
+### Bookmarks and lead tracking
 
 Any post can be bookmarked with a private note and a status (new, contacted, dismissed), so what has
 already been acted on stays separable from what has not. This is personal workflow state, not a CRM —

@@ -159,7 +159,7 @@ one to an audience from the results.
 > ever have — the source exposes none — so a day not collected is permanently lost. This scenario
 > stays unverifiable for weeks regardless of when the UI is built.
 
-## Scenario 7 — Saved posts (User Story 7, P7)
+## Scenario 7 — Bookmarks (User Story 7, P7)
 
 Bookmark from the feed, from a search result, and from an alert match. Add a note. Set status to
 `contacted`. Filter by status. Confirm a bookmark of a since-deleted post still shows captured text

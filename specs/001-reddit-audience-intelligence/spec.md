@@ -50,7 +50,7 @@ items listed in the README's **Future Scope** section are explicitly out of scop
 ### User Story 1 - Build an audience and read its feed (Priority: P1)
 
 A researcher searching for the communities relevant to a market they care about finds several
-subreddits, groups them into one named audience, and reads a single unified timeline of everything
+communities, groups them into one named audience, and reads a single unified timeline of everything
 those communities are posting — sorting it by newest or by what performed best today or this week,
 and opening any post to read it in full without leaving the application.
 
@@ -58,7 +58,7 @@ and opening any post to read it in full without leaving the application.
 read its combined feed, no other capability in this product has anything to operate on. Delivered
 alone, it already replaces the manual work of opening a dozen subreddit tabs in sequence.
 
-**Independent Test**: Create an audience from three named subreddits, open its feed, sort it three
+**Independent Test**: Create an audience from three named communities, open its feed, sort it three
 different ways, and read the full text of a post — all without visiting Reddit directly. Delivers
 immediate value as a multi-community reader even if nothing else ships.
 
@@ -303,9 +303,9 @@ retrieve both from the saved list in a later session.
 3. **Given** a bookmarked post that has since been deleted at the source, **When** the researcher
    opens their bookmark, **Then** the text captured at the time of saving is still readable, marked as
    no longer available at the source.
-4. **Given** a saved post representing a person worth contacting, **When** the researcher sets its
+4. **Given** a bookmark representing a person worth contacting, **When** the researcher sets its
    status, **Then** the status persists and can be changed later as the situation moves on.
-5. **Given** a list of saved posts, **When** the researcher filters by status, **Then** only posts in
+5. **Given** a list of bookmarks, **When** the researcher filters by status, **Then** only posts in
    that state are shown, so what has already been acted on stays separate from what has not.
 
 ---
@@ -588,9 +588,9 @@ everything that follows them.
 - **FR-042**: Users MUST be able to attach a private note to a bookmarked post.
 - **FR-043**: Bookmarked posts MUST remain readable from captured content if the original is later
   removed at the source, and MUST be marked as no longer available.
-- **FR-064**: Users MUST be able to set a status on a saved post — at minimum new, contacted, and
+- **FR-064**: Users MUST be able to set a status on a bookmark — at minimum new, contacted, and
   dismissed — and change it at any time.
-- **FR-065**: Users MUST be able to filter their saved posts by status, so what has been acted on stays
+- **FR-065**: Users MUST be able to filter their bookmarks by status, so what has been acted on stays
   separable from what has not.
 - **FR-066**: Status and notes MUST be private to the user and MUST NOT be transmitted to the source or
   be visible to anyone else.
@@ -682,7 +682,7 @@ everything that follows them.
 - **Alert Match**: A record that a particular post satisfied a particular rule, and when — retained
   independently of the rule that produced it. Records which matching mode fired and, for intent
   matches, how close the match was.
-- **Bookmark**: A user's saved post, with captured content, an optional private note, and a status
+- **Bookmark**: A post the user has chosen to keep, with captured content, an optional private note, and a status
   recording where the researcher has got to with it.
 - **Usage Record**: A record of the cost, volume, response time, and reuse of one unit of automated
   analysis, used to produce the transparency views.
@@ -720,7 +720,7 @@ everything that follows them.
   that post being collected.
 - **SC-015**: For any theme, its direction of travel over the collected period and the number of
   distinct authors behind it are reachable within two interactions from the analysis view.
-- **SC-016**: A researcher can tell, for any saved post, whether they have already acted on it,
+- **SC-016**: A researcher can tell, for any bookmark, whether they have already acted on it,
   without opening it.
 - **SC-017**: Text of material deleted at the source is purged from the general corpus within 24
   hours of the deletion being detected, and no purged text appears in any feed, search result, or

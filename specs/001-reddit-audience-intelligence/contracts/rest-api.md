@@ -243,7 +243,7 @@ Delivery is in-app only; there are no outbound-channel endpoints (FR-063).
 History returns `history_available: false` with the collected period length when there is too little
 to plot (FR-039) rather than a misleading line.
 
-## Saved posts — User Story 7
+## Bookmarks — User Story 7
 
 | Method | Path | Purpose | Requirements |
 |---|---|---|---|

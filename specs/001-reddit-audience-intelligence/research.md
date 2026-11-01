@@ -50,6 +50,14 @@ hosted HuggingFace Inference API instead of local `sentence-transformers` — re
 a third external network dependency and its own rate limits; local inference costs nothing but CPU
 time and keeps embedding fully offline.
 
+**Usernames never reach the provider** (Constitution VIII). No feature in this specification needs an
+author's identity to interpret content: distinct-author counts (FR-054) are computed in SQL, and
+citations reference posts, not people. Prompt assembly in the adapter therefore never includes author
+fields, and masks `u/<name>` mentions inside post and comment text to `u/[user]` with a fixed pattern
+before any `complete()` call. The masking is applied to *input*, so it is not the output parsing that
+Constitution VII prohibits. Local `embed()` is exempt because no text leaves the process. A future
+call site that genuinely needs a username must say why at the call site, per Constitution VIII.
+
 ---
 
 ## R2. Embedding and chunking strategy
@@ -237,6 +245,18 @@ practical effect. Server-rendered templates from FastAPI — rejected, it contra
 makes the four-state UX requirement awkward. Deferring the design system until several screens exist —
 rejected, that is precisely how one-off styling accumulates.
 
+**Untrusted text is rendered as text** (Constitution VIII). Reddit post and comment bodies, and model
+output such as Ask answers, pass through one shared renderer in `frontend/src/components/` that emits
+escaped plain text with line breaks preserved. URLs become links that load only when clicked and carry
+`rel="noopener noreferrer nofollow"`. Images are never embedded; an image URL is shown as a link.
+`{@html}` is banned project-wide: `svelte/no-at-html-tags` is already `error` in the recommended
+Svelte lint config, and `frontend/eslint.config.js` pins it explicitly so that a later config change
+cannot drop it silently and let the renderer be bypassed. Reddit bodies are Markdown, and
+showing them unformatted is the accepted cost for this release. Rendering Markdown later requires an
+HTML sanitizer, which is a new dependency, and a revision of this section. Building it as a pure
+function rather than a component is also what lets it be tested under the existing node-environment
+Vitest setup without adding component-testing dependencies.
+
 ---
 
 ## R11. Authentication
@@ -268,9 +288,26 @@ before-and-after scores on any prompt, model, chunking, or retrieval change. SC-
 agreement floor and FR-047 requires publishing the figure. None of that is possible without the sets
 existing first, which makes this a prerequisite of the AI work rather than a follow-up to it.
 
+**Retrieval is scored directly** (Constitution IX), not inferred from answer quality. The harness
+reports two retrieval figures over the answerable questions in `retrieval.jsonl`:
+
+- **Recall at k** — the share of a question's labelled relevant posts that appear among the posts of
+  the top *k* retrieved passages, averaged over answerable questions. *k* is the retrieval depth Ask is
+  configured with, so the number describes what Ask actually sees.
+- **Claim traceability** — the share of answer claims that rest on a retrieved, relevant passage.
+  Ask's structured output (Constitution VII) is a list of claims, each naming the passage ids it rests
+  on. A claim is traceable when at least one passage it names was retrieved for that question and
+  belongs to a post labelled relevant. A claim naming no passage, or only passages that were not
+  retrieved, is untraceable.
+
+Unanswerable questions are excluded from both figures and scored instead by refusal rate (SC-007). The
+API contract is unaffected: the answer text is assembled from the claims, and `citations` is their
+union.
+
 **Alternatives considered**: Model-generated labels — rejected, scoring a model against its own
 output measures nothing. Deferring the eval set until after the AI features work — rejected, it
-inverts Constitution IX's regression gate and means the first prompt change ships unmeasured.
+inverts Constitution IX's regression gate and means the first prompt change ships unmeasured. Judging
+traceability with a second model — rejected, it is non-deterministic and charges per evaluation run.
 
 ---
 
@@ -411,6 +448,41 @@ approximation of what an embedding already does.
 
 ---
 
+## R19. Context budget and Ask history
+
+**Decision**: Every `complete()` call site declares an input token budget, read from configuration.
+The adapter estimates the assembled context's size before the call and **refuses** an over-budget
+request with a typed error rather than truncating it silently. The estimate is deterministic and
+deliberately conservative: UTF-8 byte length divided by 3, rounded up. That overcounts English text
+and is roughly exact for multi-byte scripts. Telemetry records the provider-reported counts, not the
+estimate.
+
+Ask assembles context in a fixed order: system instructions, then retrieved passages admitted whole in
+rank order until the budget is reached, then the question. A passage is never cut mid-text. Question
+length is capped by the request schema, so the fixed parts are bounded. Chunks have a hard size ceiling
+(R2's target enforced as a maximum, with an oversized paragraph split at sentence boundaries).
+Configuration is validated at startup so that the refusal gate's minimum passage count *N* (R16) always
+fits inside the Ask budget. A gate that passes can therefore never be undone by the budget.
+
+**Ask history policy: no prior turns enter the prompt.** Each question is answered from retrieval
+alone. Turns are still persisted per Constitution VII, so the record stays inspectable, but they are
+history for the user, not context for the model.
+
+**Rationale**: Constitution VII requires context to be "bounded by an enforced token budget" and history
+to follow "a documented, deterministic policy". The contract makes Ask single-shot (no session in the
+request), and FR-032 requires the same question against unchanged material to answer consistently.
+Prior turns in the prompt would make the answer depend on what was asked before, which breaks FR-032
+directly. Refusing rather than truncating keeps an over-budget request visible as a configuration
+defect instead of a quietly degraded answer.
+
+**Alternatives considered**: An exact tokenizer for the pinned model — rejected for now; it adds a
+dependency outside the committed stack to make exact a number that only needs to be a safe ceiling.
+Summarising prior turns into the prompt — rejected; it costs a model call per question and makes
+answers depend on conversation order. A sliding window of the last few turns — rejected for the same
+FR-032 reason; revisit only if follow-up questions become a specified capability.
+
+---
+
 ## Resolved Technical Context
 
 | Item | Resolution |
@@ -432,6 +504,8 @@ approximation of what an embedding already does.
 | Analysis resilience | Chunked commits with a persisted cursor; resume, never restart (R15) |
 | Refusal | Deterministic gate: minimum passage count above a similarity floor (R16) |
 | Alert matching | Keyword and intent modes, independently operable; intent reuses pgvector (R18) |
+| Context budget | Per-call input budget enforced by the adapter; Ask answers each question without prior turns (R19) |
+| Untrusted text | Usernames masked before provider calls (R1); Reddit and model text rendered as escaped text, `{@html}` lint-banned (R10) |
 | Scale | One user; up to 50 communities per audience; 8 user stories; 83 functional requirements |
 
 No `NEEDS CLARIFICATION` items remain.
