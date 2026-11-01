@@ -27,10 +27,10 @@ database, and the documentation. A second word for any of them is not permitted.
 
 ### Basic Features
 
-1. **Subreddit Discovery**
-A search bar to look for subreddits and view/obtain basic stats.
+1. **Community Discovery**
+A search bar to look for communities and view/obtain basic stats.
 2. **Audience Creation**
-Ability to group multiple subreddits into single saved category.
+Ability to group multiple communities into single saved category.
 (Eg: "Designers" = r/UI_Design + r/Figma + r/UXDesign)
 3. **Aggregated Feed**
 A unified timeline and interface for displaying all posts within a selected audience.
@@ -44,17 +44,17 @@ Click a post to read title and body text natively (without leaving the app and r
 #### Audience Discovery and Management
 
 1. **Saved Audiences**
-These audiences (group of subreddits) have been created/selected by the user to follow.
+These audiences (group of communities) have been created/selected by the user to follow.
 The user can:
     1. rename them
-    2. add subreddits to the audience
-    3. remove subreddits from the audience
-2. **Curated Audiences**
-These audiences are lists of subreddits already created by other users/ the web app team. Users can browse, select and save these audiences as per requirement. This helps users discover communities worth tracking without digging through Reddit manually.
-3. **Trending Subreddits**
-Allows users to discover subreddits that are currently *trending* based on different criterion.
+    2. add communities to the audience
+    3. remove communities from the audience
+2. **Starter Audiences**
+These audiences are lists of communities authored by the maintainer and shipped with the product. Users can browse, select and save these audiences as per requirement. This helps users discover communities worth tracking without digging through Reddit manually.
+3. **Trending Communities**
+Allows users to discover communities that are currently *trending* based on different criterion.
     1. **Largest**
-    Looks for the largest subreddits based on: members / number of posts.
+    Looks for the largest communities based on: members / number of posts.
     Size can be filtered too.
     (Eg: 1M+ members, 100k-1M members, 10k-100k members, 1k-10k members, etc.)
     2. **Active**
@@ -62,19 +62,19 @@ Allows users to discover subreddits that are currently *trending* based on diffe
     Can be sorted by: number of posts, traffic to the subeddit, etc.
     Timeline can be: monthly, weekly, daily, etc.
     3. **Growing**
-    Filters subreddits based on highest growth in terms of number of members.
+    Filters communities based on highest growth in terms of number of members.
     Can be further filtered based on timeline (yearly, monthly, weekly growth) and size (1M+ members, 100k-1M members, 10k-100k members, 1k-10k members, etc.).
 
 > **Data cold start.** The Reddit API exposes a subreddit's *current* member count only — there is no
 > history endpoint. Growth trends and member/post line graphs therefore require JammySearch to snapshot
-> subreddit stats itself on a daily schedule and accumulate its own history. The snapshot task should
+> community stats itself on a daily schedule and accumulate its own history. The snapshot task should
 > be built and left running early, well before the UI that consumes it, because the feature displays
 > nothing meaningful until weeks of data exist.
 
-#### Subreddits UI on Trending
+#### Communities UI on Trending
 
 1. **Tags**
-Each subreddit can be tagged based on the following:
+Each community can be tagged based on the following:
     1. Size
     Massive, Large, Moderate, Small
     2. New / Not new
@@ -85,15 +85,15 @@ Plotting number of members/posts over time.
 3. **Search**
 Search according to name, description, topic
 4. **Add to Audience**
-Lets users add a subreddit to an existing audience or create a new one.
-(Upon creating new audience, suggests similar subreddits for the audience)
+Lets users add a community to an existing audience or create a new one.
+(Upon creating new audience, suggests similar communities for the audience)
 
 #### Audience Analysis
 
-1. **Subreddits**
-Display all subreddits present within the audience.
+1. **Communities**
+Display all communities present within the audience.
 2. **Topics**
-Display all topics covered by all the subreddits within the audience.
+Display all topics covered by all the communities within the audience.
 (Eg: The audience 'Side Hustles' may have the following topics:
 Hiring, Money, Remote Work, Referral, etc.)
 3. **Themes**
@@ -107,7 +107,7 @@ Allows users to ask questions relevant to the audience, for which AI will return
 
 ##### Exploring a theme during audience analysis
 
-Selecting any particular theme (scoring/ai-tagged) will display the subcategories (eg: Advice, Questions, Recommendations for the theme 'Advice Request' of audience 'Side Hustle'), topics and subreddits covered by the theme.
+Selecting any particular theme (scoring/ai-tagged) will display the subcategories (eg: Advice, Questions, Recommendations for the theme 'Advice Request' of audience 'Side Hustle'), topics and communities covered by the theme.
 It will also display a brief description of that theme.
 There should also be an option to display patterns found within the posts related to the theme.
 
@@ -126,8 +126,8 @@ Define context for search
 Number of results
 5. **Timeline**
 6. **Include/Excluse Users**
-7. **Individual Subreddits**
-8. **Enable/Disable Subreddits**
+7. **Individual Communities**
+8. **Enable/Disable Communities**
 9. **Disable Keywords**
 
 #### Results
@@ -208,9 +208,9 @@ This would include:
     - handle rate limiting
     - schedule data refreshes
 2. **Audience Management**
-Audiences are lists of subreddits grouped together based on different criterion. This module is responsible for handling the creation, storage and retrieval of user-defined audiences. It also manages curated audiences (defined by the team or by other users) and the logic for suggesting related subreddits when a new audience is created.
+Audiences are lists of communities grouped together based on different criterion. This module is responsible for handling the creation, storage and retrieval of user-defined audiences. It also manages starter audiences (authored by the maintainer and shipped with the product) and the logic for suggesting related communities when a new audience is created.
 3. **Feed & Search Engine**
-Consumes data from the Reddit Data Layer and serves it to the frontend in a unified, filterable format. Handles aggregated feed construction across multiple subreddits, advanced keyword search with Boolean support, filtering by timeline, post type, subreddit inclusion/exclusion, and user inclusion/exclusion. Also responsible for deduplication and cross-post detection.
+Consumes data from the Reddit Data Layer and serves it to the frontend in a unified, filterable format. Handles aggregated feed construction across multiple communities, advanced keyword search with Boolean support, filtering by timeline, post type, community inclusion/exclusion, and user inclusion/exclusion. Also responsible for deduplication and cross-post detection.
 4. **AI & Analysis Engine**
 The intelligence layer. Responsible for theme tagging, topic extraction, sentiment analysis, pattern detection, comment-level analysis, and the "Ask" feature (RAG-based Q&A over audience posts). Calls out to Groq for chat completions (open-weight models, via LangChain) and embeds locally with a HuggingFace sentence-transformers model, and manages prompt construction, response parsing, and result caching to avoid redundant inference costs.
 5. **Alerts, Notifications & Integrations** *(mostly deferred)*
