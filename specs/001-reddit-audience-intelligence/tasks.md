@@ -95,7 +95,7 @@ Web application per plan.md: `backend/app/`, `backend/workers/`, `backend/tests/
 > statements were clean, but `Settings` held every secret as a plain `str`, so any `repr` of it, or an
 > accidental log of it, printed them in full.
 
-- [ ] T201 [P] Write failing tests asserting secrets never appear in settings output, sign-in logs, or session logs in backend/tests/unit/test_secret_redaction.py and backend/tests/integration/test_auth_logging.py
+- [X] T201 [P] Write failing tests asserting secrets never appear in settings output, sign-in logs, or session logs in backend/tests/unit/test_secret_redaction.py and backend/tests/integration/test_auth_logging.py
 - [ ] T202 Hold secret settings as SecretStr and unwrap them only at their point of use in backend/app/config.py
 
 ### Reddit data layer (Constitution I)
